@@ -12,8 +12,6 @@ const MovieSearch = () => {
     dispatch(fetchMovies());
   }, [dispatch]);
 
-  console.log(search);
-  console.log(movieList);
   const handleSearch = (e) => {
     setSearch({ searchTerm: e.target.value });
   };
