@@ -1,66 +1,53 @@
-import React, { Component } from 'react';
-import { fetchMovies } from '../actions/movieActions';
-import { setMovie } from '../actions/movieActions';
-import {connect} from "react-redux";
-import { Image } from 'react-bootstrap'
-import { Carousel } from 'react-bootstrap'
-import { Glyphicon } from 'react-bootstrap'
-import {LinkContainer} from 'react-router-bootstrap';
+import React, { useEffect } from "react";
+import { fetchMovies } from "../actions/movieActions";
+import { setMovie } from "../actions/movieActions";
+import { useDispatch, useSelector } from "react-redux";
+import { Image } from "react-bootstrap";
+import { Carousel } from "react-bootstrap";
+import { Glyphicon } from "react-bootstrap";
+import { LinkContainer } from "react-router-bootstrap";
 
-class MovieList extends Component {
-    constructor(props) {
-        super(props);
-        this.handleSelect = this.handleSelect.bind(this);
-    }
+const MovieList = () => {
+  const movieList = useSelector((state) => state.movie.movies);
+  const dispatch = useDispatch();
+  useEffect(() => {
+    dispatch(fetchMovies());
+  }, [dispatch]);
 
-    componentDidMount() {
-        const {dispatch} = this.props;
-        dispatch(fetchMovies());
-    }
+  const handleSelect = (movie) => {
+    dispatch(setMovie(movie));
+  };
 
-    handleSelect(selectedIndex, e) {
-        const {dispatch} = this.props;
-        dispatch(setMovie(this.props.movies[selectedIndex]));
-    }
+  const handleClick = (movie) => {
+    dispatch(setMovie(movie));
+  };
 
-    handleClick = (movie) => {
-        const {dispatch} = this.props;
-        dispatch(setMovie(movie));
-    }
+  if (!movieList.result) {
+    // evaluates to true if currentMovie is null
+    return <div>Loading...</div>;
+  }
 
-    render() {
-        const MovieListCarousel= ({movieList}) => {
-            if (!movieList) { // evaluates to true if currentMovie is null
-                return <div>Loading...</div>;
-            }
+  return (
+    <Carousel>
+      {movieList.result.map((movie, i) => (
+        <Carousel.Item key={movie._id} onSelect={handleSelect(movie)}>
+          <div>
+            <LinkContainer
+              to={"/movie/" + movie._id}
+              onClick={() => handleClick(movie)}
+            >
+              <Image className="image" src={movie.imageUrl} thumbnail />
+            </LinkContainer>
+          </div>
+          <Carousel.Caption>
+            <h3>{movie.title}</h3>
+            <Glyphicon glyph={"star"} /> {movie.avgRating} &nbsp;&nbsp;{" "}
+            {movie.year}
+          </Carousel.Caption>
+        </Carousel.Item>
+      ))}
+    </Carousel>
+  );
+};
 
-            return (
-                <Carousel onSelect={this.handleSelect}>
-                    {movieList.map((movie) =>
-                        <Carousel.Item key={movie._id}>
-                            <div>
-                                <LinkContainer to={'/movie/'+movie._id} onClick={()=>this.handleClick(movie)}>
-                                    <Image className="image" src={movie.imageUrl} thumbnail />
-                                </LinkContainer>
-                            </div>
-                            <Carousel.Caption>
-                                <h3>{movie.title}</h3>
-                                <Glyphicon glyph={'star'} /> {movie.avgRating} &nbsp;&nbsp; {movie.releaseDate}
-                            </Carousel.Caption>
-                        </Carousel.Item>)}
-                </Carousel>)
-        }
-
-        return (
-          <MovieListCarousel movieList={this.props.movies} />
-        );
-    }
-}
-
-const mapStateToProps = state => {
-    return {
-        movies: state.movie.movies
-    }
-}
-
-export default connect(mapStateToProps)(MovieList);
+export default MovieList;
